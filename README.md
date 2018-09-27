@@ -1,2 +1,2 @@
 # mcmk
-minecraft maker course for kangqiao G8 2018
+minecraft maker course for kangqiao G9 2018Fall
