@@ -2,9 +2,37 @@ import numpy as np
 import cv2
 import random
 
-print(int(random.uniform(0,3)))
+face_cascade = cv2.CascadeClassifier('D:\python36\Lib\site-packages\cv2\data\haarcascade_frontalface_default.xml')
+eye_cascade = cv2.CascadeClassifier('D:\python36\Lib\site-packages\cv2\data\haarcascade_eye.xml')
 
+#先检测人脸，存到face.jpg中
 cap=cv2.VideoCapture(0)
+
+while(True):
+    ret,frame = cap.read()    
+    img = frame
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    
+    for (x,y,w,h) in faces:
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+        for (x,y,w,h) in faces:
+            img = cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+            roi_gray = gray[y:y+h, x:x+w]
+            roi_color = img[y:y+h, x:x+w]
+            cv2.imshow('roi_color',roi_color)
+            cv2.imwrite('face.jpg',roi_color)
+            eyes = eye_cascade.detectMultiScale(roi_gray)
+            for (ex,ey,ew,eh) in eyes:
+                cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+                
+    cv2.imshow('img',img)
+    # 按s键保存退出
+    if cv2.waitKey(1000)&0xFF==ord('s'):
+        break
+cv2.destroyAllWindows()
+
+#下棋程序开始
 ret,frame = cap.read()
 
 L=len(frame)
@@ -13,7 +41,6 @@ W=len(frame[0])
 print(L,W)
 
 SIZE=100
-
 
 X0=int(W/2-1.5*SIZE)
 Y0=int(L/2-1.5*SIZE)
@@ -47,6 +74,7 @@ def AIplayerR2():
         if chessboard[i][j]==0:
             chessboard[i][j]=2
             return
+    #随机试20次没有碰到空的，则启用顺序
     AIplayer2()
 
 #j堵活二版
@@ -74,7 +102,27 @@ def AIplayerA2():
                 if chessboard[i][j]==0:
                     chessboard[i][j]=2
                     return
-    #没有纵横2，则随机下
+    #找主对角线的2，堵之  
+    counter1=0
+    for i in range(3):
+        if chessboard[i][i]==1: 
+            counter1+=1
+    if counter1==2:
+        for i in range(3):
+            if chessboard[i][i]==0:
+                chessboard[i][i]=2
+                return
+    #找副主对角线的2，堵之  
+    counter1=0
+    for i in range(3):
+        if chessboard[i][2-i]==1: 
+            counter1+=1
+    if counter1==2:
+        for i in range(3):
+            if chessboard[i][2-i]==0:
+                chessboard[i][2-i]=2
+                return
+    #纵横及对角线均没有成2的，则随机下
     AIplayerR2()
 
                     
@@ -99,6 +147,20 @@ def mouse_dclick(event,x,y,flags,param):
 cv2.namedWindow('frame')
 cv2.setMouseCallback('frame',mouse_dclick)
 
+def mychess1(frame,xy,R):
+#   cv2.circle(frame,xy,R,(255,0,0),-1)
+    img=cv2.imread("face.jpg")
+    x0=xy[1]-R
+    y0=xy[0]-R
+    frame[x0:x0+SIZE,y0:y0+SIZE]= cv2.resize(img[0:200,0:200],(SIZE,SIZE),interpolation=cv2.INTER_CUBIC)
+
+def mychess2(frame,xy,R):
+    img=cv2.imread("123.jpg")
+    x0=xy[1]-R
+    y0=xy[0]-R
+    frame[x0:x0+SIZE,y0:y0+SIZE]= cv2.resize(img[0:400,0:600],(SIZE,SIZE),interpolation=cv2.INTER_CUBIC)
+
+    
 while(True):
     ret,frame = cap.read()
     #画棋盘和棋子
@@ -107,8 +169,10 @@ while(True):
             cv2.rectangle(frame,(i*SIZE+X0,j*SIZE+Y0),(i*SIZE+SIZE+X0,j*SIZE+SIZE+Y0),(255,128,255),2)
             if chessboard[i][j]==1:
                 cv2.circle(frame,(i*SIZE+X0+R,j*SIZE+Y0+R),R,(255,0,0),-1)
+                mychess1(frame,(i*SIZE+X0+R,j*SIZE+Y0+R),R)
             elif chessboard[i][j]==2:
                 cv2.circle(frame,(i*SIZE+X0+R,j*SIZE+Y0+R),R,(255,0,0),3)
+                mychess2(frame,(i*SIZE+X0+R,j*SIZE+Y0+R),R)
 
     cv2.imshow('frame',frame)
 
